@@ -1,7 +1,5 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
+﻿using System.IO;
+using MediaToolkit.Services;
 using static System.IO.Path;
 using static NecoArcAntivirus.Extensions;
 
@@ -9,7 +7,8 @@ namespace NecoArcAntivirus
 {
     public class Mixer
     {
-        private string _audio, _video;
+        private string _video;
+        private readonly string _audio;
         private readonly string _path;
         
         public Mixer(string[] args, string path)
@@ -23,9 +22,6 @@ namespace NecoArcAntivirus
             FindVideo();
             if (_video == null) return;
 
-            FixPathSpaces(ref _audio);
-            FixPathSpaces(ref _video);
-            
             Mix();
         }
 
@@ -44,24 +40,12 @@ namespace NecoArcAntivirus
         
         private void Mix()
         {
-            string name = GetFileName(UniquePath(Combine(_path, "sus.mp4")));
-            
-            var process = new Process();
-            var info = new ProcessStartInfo();
-            info.FileName = "cmd.exe";
-            info.RedirectStandardInput = true;
-            info.UseShellExecute = false;
-            process.StartInfo = info;
-            process.Start();
+            string name = UniquePath(Combine(_path, "sus.mp4"));
 
-            using var writer = process.StandardInput;
-            if (writer.BaseStream.CanWrite)
-            {
-                writer.WriteLine($"{_path[0]}:");
-                writer.WriteLine($"cd {_path}");
-                writer.WriteLine($"ffmpeg -i {_video} -i {_audio} -c:v copy -map 0:v:0 -map 1:a:0 -shortest {name}");
-                Console.ReadKey();
-            }
+            var ffmpeg = "C:\\ffmpeg\\bin\\ffmpeg.exe";
+            var service = MediaToolkitService.CreateInstance(ffmpeg);
+            var task = new FfTaskMix(_video, _audio, name);
+            service.ExecuteAsync(task).Wait();
         }
     }
 }
