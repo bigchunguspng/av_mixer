@@ -42,7 +42,7 @@ namespace NecoArcAntivirus
         {
             string name = UniquePath(Combine(_path, "sus.mp4"));
 
-            var ffmpeg = "C:\\ffmpeg\\bin\\ffmpeg.exe";
+            var ffmpeg = @"C:\FFMpeg\bin\ffmpeg.exe";
             var service = MediaToolkitService.CreateInstance(ffmpeg);
             var task = new FfTaskMix(_video, _audio, name);
             service.ExecuteAsync(task).Wait();
